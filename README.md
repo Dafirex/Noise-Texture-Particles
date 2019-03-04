@@ -1,5 +1,6 @@
 # Noise-Texture-Particles
-Shader for Unity particles that use noise textures as inputs to create different patterns
+Shader for Unity particles that use noise textures as inputs to create different patterns.\
+**When combining textures make sure to set them to read/write in the texture import settings.**
 
 # Demo
 [![Video](http://files.dafire.xyz/images/2n21bB.png)](http://files.dafire.xyz/videos/noiseparticles.mp4)
@@ -11,5 +12,6 @@ Make sure to also add Custom1.xyzw and Custom2.xyzw and set them to be TEXCOORD1
 Set UV2 to be TEXCOORD0.zw to fill the rest of TEXCOORD0.
 
 ![](http://files.dafire.xyz/images/dlJ687.png)
+
 
 There is a scene included with a few examples.
