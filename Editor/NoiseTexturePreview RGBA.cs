@@ -22,7 +22,7 @@ using UnityEngine;
 using UnityEditor;
 
 //[CustomEditor(typeof(MeshFilter))]
-public class NoiseTexturePreview : EditorWindow {
+public class NoiseTexturePreviewRGBA : EditorWindow {
 
 	public enum ActiveTex{
 		Noise,
@@ -39,8 +39,7 @@ public class NoiseTexturePreview : EditorWindow {
 	static bool isActive = false;
 
 	static bool timeToUpdate;
-	static Texture2D tex1;
-	static Texture2D tex2;
+	static Texture2D tex;
 	static Vector4 tex1Mod;
 	static Vector2 tex1Scale;
 	static Vector2 tex1Offset;
@@ -57,13 +56,15 @@ public class NoiseTexturePreview : EditorWindow {
 	static float edgePow;
 
 	static ActiveTex currentTex;
-	static bool RGBATex;
+
+	static bool useTex1;
+	static bool useTex2;
 
 	private void Awake() {
 		previewQuad = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		previewQuad.transform.position = new Vector3(1000000000, 1000000000, 1000000000);
 		previewQuad.name = "Texture Preview";
-		quadMat = new Material(Shader.Find("Hidden/Dafirex/NoiseTexPreview"));
+		quadMat = new Material(Shader.Find("Hidden/Dafirex/NoiseTexPreviewRGBA"));
 		quadRenderer = previewQuad.GetComponent<MeshRenderer>();
 		quadRenderer.material = quadMat;
 
@@ -80,37 +81,22 @@ public class NoiseTexturePreview : EditorWindow {
 		return isActive;
 	}
 
-	public static void SetTexOne(Texture2D texture){
-		tex1 = texture;
+	public static void SetTex(Texture2D texture, bool tex1, bool tex2){
+		tex = texture;
+		useTex1 = tex1;
+		useTex2 = tex2;
 		timeToUpdate = true;
 	}
 
-	public static void SetTexTwo(Texture2D texture){
-		tex2 = texture;
-		timeToUpdate = true;
-	}
-
-	public static void SendMaterialTextures(Texture2D texture1, Texture2D texture2){
-		RGBATex = false;
-		tex1 = texture1;
-		tex2 = texture2;
-		timeToUpdate = true;
-	}
-
-	public static void SendMaterialTextures(Texture2D texture1){
-		RGBATex = true;
-		tex1 = texture1;
-		timeToUpdate = true;
-	}
 
 	public static void SendMaterialValues(Vector4 mod1, Vector4 tex1OffsetScale, Vector4 mod2, Vector4 tex2OffsetScale, float colMulVal, float colPowVal){
 		timeToUpdate = true;
 		tex1Mod = mod1;
-		tex1Offset = new Vector2(tex1OffsetScale.z, tex1OffsetScale.w);
-		tex1Scale = new Vector2(tex1OffsetScale.x, tex1OffsetScale.y);
+		tex1Offset = new Vector2(tex1OffsetScale.x, tex1OffsetScale.y);
+		tex1Scale = new Vector2(tex1OffsetScale.z, tex1OffsetScale.w);
 		tex2Mod = mod2;
-		tex2Offset = new Vector2(tex2OffsetScale.z, tex2OffsetScale.w);
-		tex2Scale = new Vector2(tex2OffsetScale.x, tex2OffsetScale.y);
+		tex2Offset = new Vector2(tex2OffsetScale.x, tex2OffsetScale.y);
+		tex2Scale = new Vector2(tex2OffsetScale.z, tex2OffsetScale.w);
 		colMul = colMulVal;
 		colPow = colPowVal;
 		currentTex = ActiveTex.Noise;
@@ -118,11 +104,11 @@ public class NoiseTexturePreview : EditorWindow {
 	public static void SendMaterialValues(Vector4 mod1, Vector4 tex1OffsetScale, Vector4 mod2, Vector4 tex2OffsetScale, float colMulVal, float colPowVal, float edgeSoftVal, float edgeMulVal, float edgePowVal){
 		timeToUpdate = true;
 		tex1Mod = mod1;
-		tex1Offset = new Vector2(tex1OffsetScale.z, tex1OffsetScale.w);
-		tex1Scale = new Vector2(tex1OffsetScale.x, tex1OffsetScale.y);
+		tex1Offset = new Vector2(tex1OffsetScale.x, tex1OffsetScale.y);
+		tex1Scale = new Vector2(tex1OffsetScale.z, tex1OffsetScale.w);
 		tex2Mod = mod2;
-		tex2Offset = new Vector2(tex2OffsetScale.z, tex2OffsetScale.w);
-		tex2Scale = new Vector2(tex2OffsetScale.x, tex2OffsetScale.y);
+		tex2Offset = new Vector2(tex2OffsetScale.x, tex2OffsetScale.y);
+		tex2Scale = new Vector2(tex2OffsetScale.z, tex2OffsetScale.w);
 		colMul = colMulVal;
 		colPow = colPowVal;
 		edgeSoft = edgeSoftVal;
@@ -133,12 +119,14 @@ public class NoiseTexturePreview : EditorWindow {
 
 	private void UpdateValues(){
 		timeToUpdate = false;
-		quadMat.SetTexture("_MainTex", tex1);
-		quadMat.SetTextureOffset("_MainTex", tex1Offset);
-		quadMat.SetTextureScale("_MainTex", tex1Scale);
-		quadMat.SetTexture("_SecondTex", tex2);
-		quadMat.SetTextureOffset("_SecondTex", tex2Offset);
-		quadMat.SetTextureScale("_SecondTex", tex2Scale);
+		quadMat.SetTexture("_MainTex", tex);
+		quadMat.SetFloat("_UseTex1", BoolToFloat(useTex1));
+		quadMat.SetFloat("_UseTex2", BoolToFloat(useTex2));
+
+		Vector4 texOffsetScale1 = new Vector4(tex1Offset.x, tex1Offset.y, tex1Scale.x, tex1Scale.y);
+		Vector4 texOffsetScale2 = new Vector4(tex2Offset.x, tex2Offset.y, tex2Scale.x, tex2Scale.y);
+		quadMat.SetVector("_TextureOffsetScale", texOffsetScale1);
+		quadMat.SetVector("_Texture2OffsetScale", texOffsetScale2);
 		quadMat.SetVector(Shader.PropertyToID("_MainTexMod"), tex1Mod);
 		quadMat.SetVector(Shader.PropertyToID("_SecondTexMod"), tex2Mod);
 		quadMat.SetFloat(Shader.PropertyToID("_ColMul"), colMul);
@@ -149,12 +137,16 @@ public class NoiseTexturePreview : EditorWindow {
 				quadMat.SetFloat(Shader.PropertyToID("_EdgeMul"), edgeMul);
 				quadMat.SetFloat(Shader.PropertyToID("_EdgePow"), edgePow);
 				quadMat.SetFloat(Shader.PropertyToID("_ShowEdge"), 1);
+				quadMat.SetFloat(Shader.PropertyToID("_Mask"), 0);
 				break;
 			case ActiveTex.Noise:
 			default:
 				quadMat.SetFloat(Shader.PropertyToID("_ShowEdge"), 0);
+				quadMat.SetFloat(Shader.PropertyToID("_Mask"), 1);
 				break;
 		}
+
+
 	}
 
 
@@ -175,5 +167,9 @@ public class NoiseTexturePreview : EditorWindow {
 		gameObjectEditor = null;
 
 	}
+	private static float BoolToFloat(bool x){
+		return x == true ? 1 : 0;
+	}
+
 
 }

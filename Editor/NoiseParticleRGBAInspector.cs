@@ -161,7 +161,8 @@ public class NoiseParticleRGBAInspector : ShaderGUI
 
 
 
-
+		//Change Check for preview Update
+		EditorGUI.BeginChangeCheck();
 
 		//Main Tex
 		materialEditor.TexturePropertySingleLine(new GUIContent("Main Texture", "Offsets X Y controls scroll speed"), noiseTex);
@@ -213,6 +214,12 @@ public class NoiseParticleRGBAInspector : ShaderGUI
 		materialEditor.FloatProperty(texMul, "Noise Multiplier");
 		materialEditor.FloatProperty(texPow, "Noise Power");
 
+		//Preview Window
+		if(GUILayout.Button("Show Preview Window")){
+			NoiseTexturePreviewRGBA.GetWindow<NoiseTexturePreviewRGBA>("Texture Preview");
+			NoiseTexturePreviewRGBA.SetTex((Texture2D) noiseTex.textureValue, useRed, useGreen);
+			activeTex = ActiveTex.Noise;
+		}
 
 		GUILayout.Space(20);
 		//Blue Channel (Alpha Mask)
@@ -259,6 +266,12 @@ public class NoiseParticleRGBAInspector : ShaderGUI
 		materialEditor.ShaderProperty(edgePow, "Mask Edge Exponent (Power)");
 		materialEditor.ShaderProperty(edgeSoft, "Mask Edge Brightness (Add)");
 
+		//Preview Window
+		if(GUILayout.Button("Show Preview Window")){
+			NoiseTexturePreviewRGBA.GetWindow<NoiseTexturePreviewRGBA>("Texture Preview");
+			NoiseTexturePreviewRGBA.SetTex((Texture2D) noiseTex.textureValue, useBlue, useAlpha);
+			activeTex = ActiveTex.Mask;
+		}
 
 		//Color Mode Option
 		GUILayout.Space(20);
@@ -293,12 +306,28 @@ public class NoiseParticleRGBAInspector : ShaderGUI
 		materialEditor.ShaderProperty(finAlphaMul, "Final Multiplier");
 
 
+		if(EditorGUI.EndChangeCheck() && NoiseTexturePreviewRGBA.IsActive()){
+			switch(activeTex){
+				case ActiveTex.Noise:
+					NoiseTexturePreviewRGBA.SetTex((Texture2D) noiseTex.textureValue, useRed, useGreen);
+					NoiseTexturePreviewRGBA.SendMaterialValues(noiseTexMod.vectorValue, noiseTexOffsetScale.vectorValue, secondTexMod.vectorValue, secondTexOffsetScale.vectorValue, texMul.floatValue, texPow.floatValue);
+					break;
+				case ActiveTex.Mask:
+					NoiseTexturePreviewRGBA.SetTex((Texture2D) noiseTex.textureValue, useBlue, useAlpha);
+					NoiseTexturePreviewRGBA.SendMaterialValues(maskTexMod.vectorValue, maskTexOffsetScale.vectorValue, maskTex2Mod.vectorValue, maskTex2OffsetScale.vectorValue, maskMul.floatValue, maskPow.floatValue, edgeSoft.floatValue, edgeMul.floatValue, edgePow.floatValue);
+					break;
+				default:
+					break;
 
+			}
+		}
 
 		
 
 
     }
+
+
 
 	public static void SetUpBlendMode(Material mat, BlendMode mode, MaterialProperty srcBlend, MaterialProperty dstBlend){
 

@@ -168,7 +168,8 @@ public class NoiseParticleInspector : ShaderGUI
 		GUILayout.Space(20);
 
 
-
+		//Change Check for preview Update
+		EditorGUI.BeginChangeCheck();
 
 
 		//Texture Options
@@ -212,7 +213,7 @@ public class NoiseParticleInspector : ShaderGUI
 		materialEditor.FloatProperty(texMul, "Noise Multiplier");
 		materialEditor.FloatProperty(texPow, "Noise Power");
 		if(GUILayout.Button("Show Preview Window")){
-			NoiseTexturePreview.GetWindow<NoiseTexturePreview>("Texture Prview");
+			NoiseTexturePreview.GetWindow<NoiseTexturePreview>("Texture Preview");
 			NoiseTexturePreview.SendMaterialTextures((Texture2D) noiseTex.textureValue, (Texture2D) secondTex.textureValue);
 			activeTex = ActiveTex.Noise;
 		}
@@ -261,7 +262,7 @@ public class NoiseParticleInspector : ShaderGUI
 		materialEditor.ShaderProperty(edgeSoft, "Mask Edge Brightness (Add)");
 
 		if(GUILayout.Button("Show Preview Window")){
-			NoiseTexturePreview.GetWindow<NoiseTexturePreview>("Texture Prview");
+			NoiseTexturePreview.GetWindow<NoiseTexturePreview>("Texture Preview");
 			NoiseTexturePreview.SendMaterialTextures((Texture2D) maskTex.textureValue, (Texture2D) maskTex2.textureValue);
 			activeTex = ActiveTex.Mask;
 		}
@@ -301,7 +302,7 @@ public class NoiseParticleInspector : ShaderGUI
 		materialEditor.ShaderProperty(finAlphaMul, "Final Multiplier");
 
 		//End Check for all values
-		if(NoiseTexturePreview.IsActive()){
+		if(EditorGUI.EndChangeCheck() && NoiseTexturePreview.IsActive()){
 			switch(activeTex){
 				case ActiveTex.Noise:
 					NoiseTexturePreview.SendMaterialTextures((Texture2D) noiseTex.textureValue, (Texture2D) secondTex.textureValue);
