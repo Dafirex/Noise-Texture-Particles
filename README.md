@@ -16,6 +16,6 @@ Set UV2 to be TEXCOORD0.zw to fill the rest of TEXCOORD0.
 
 There is a scene included with a few examples.
 
-
+I suggest getting more noise textures from: https://gumroad.com/l/FreeNoise
 
 Tested on Unity 2017.4.15f
